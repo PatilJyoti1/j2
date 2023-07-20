@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Appointment Booking</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Appointment Booking</h1>
+  <form id="appointmentForm">
+    <label for="appName">App Name:</label>
+    <input type="text" id="appName" required><br><br>
+    <label for="email">Email ID:</label>
+    <input type="email" id="email" required><br><br>
+    <input type="submit" value="Submit">
+  </form>
+
+
+  <h2>Appointments</h2>
+  <table id="appointmentsTable">
+    <tr>
+      <th>App Name</th>
+      <th>Email ID</th>
+      <th>Actions</th>
+    </tr>
+  </table>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+  <script>
+    // Load appointments from local storage
+    let appointments = JSON.parse(saveToLocalStorage.getItem('appointments')) || [];
+
+    // Display appointments on the screen
+    function displayAppointments() {
+      const table = document.getElementById('appointmentsTable');
+      table.innerHTML = '<tr><th>App Name</th><th>Email ID</th><th>Actions</th></tr>';
+
+      for (let i = 0; i < appointments.length; i++) {
+        const appointment = appointments[i];
+        const row = table.insertRow(-1);
+        const appNameCell = row.insertCell(0);
+        const emailCell = row.insertCell(1);
+        const actionsCell = row.insertCell(2);
+
+        appNameCell.innerHTML = appointment.appName;
+        emailCell.innerHTML = appointment.email;
+        actionsCell.innerHTML = '<button onclick="editAppointment(' + i + ')">Edit</button>' +
+                                '<button onclick="deleteAppointment(' + i + ')">Delete</button>';
+      }
+    }
+
+    // Save appointment to local storage
+    function saveAppointment(appointment) {
+      appointments.push(appointment);
+      axios.post("https://crudcrud.com/api/02b6a50c2a7d4e0ba14975ad2a4b6265/appointmentData",appointments)
+      .then((response) => {
+        console.log(response)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      //localStorage.setItem('appointments', JSON.stringify(appointments));
+    }
+
+    // Delete appointment from local storage and update display
+    function deleteAppointment(index) {
+      appointments.splice(index, 1);
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+      displayAppointments();
+    }
+
+    // Edit appointment and populate the form
+    function editAppointment(index) {
+      const appointment = appointments[index];
+      document.getElementById('appName').value = appointment.appName;
+      document.getElementById('email').value = appointment.email;
+
+      // Remove the appointment from local storage
+      deleteAppointment(index);
+    }
+
+    // Submit the form
+    document.getElementById('appointmentForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const appName = document.getElementById('appName').value;
+      const email = document.getElementById('email').value;
+
+      const appointment = {
+        appName: appName,
+        email: email
+      };
+
+      saveToLocalStorage(appointment);
+      displayAppointments();
+
+      // Reset the form
+      document.getElementById('appointmentForm').reset();
+    });
+
+    // Initial display of appointments
+    displayAppointments();
+  </script>
+</body>
+</html>
